@@ -164,6 +164,19 @@ class SpecialContact extends UnlistedSpecialPage {
 				),
 				'raw' => true,
 			],
+
+			// #custom4training: add phone and place fields
+			'FromPhone' => array(
+				'label-message' => 'contactpage-fromphone',
+				'type' => 'text',
+				'required' => false,
+			),
+			'FromPlace' => array(
+				'label-message' => 'contactpage-fromplace',
+				'type' => 'text',
+				'required' => false,
+			),
+
 			'Subject' => [
 				'label-message' => 'emailsubject',
 				'type' => 'text',
@@ -244,10 +257,10 @@ class SpecialContact extends UnlistedSpecialPage {
 
 			$out->returnToMain( false );
 		} else {
-			if ( $config['RLStyleModules'] ) {
+			if ( isset ($config['RLStyleModules']) && $config['RLStyleModules'] ) {     // #custom4training to avoid notice
 				$this->getOutput()->addModuleStyles( $config['RLStyleModules'] );
 			}
-			if ( $config['RLModules'] ) {
+			if ( isset ($config['RLModules']) && $config['RLModules'] ) {           // #custom4training to avoid notice
 				$this->getOutput()->addModules( $config['RLModules'] );
 			}
 			$this->getOutput()->prependHTML( trim( $formText ) );
@@ -291,6 +304,10 @@ class SpecialContact extends UnlistedSpecialPage {
 
 		$fromAddress = $formData['FromAddress'];
 		$fromName = $formData['FromName'];
+
+		// #custom4training: We can't have other sender addresses, otherwise we're suspect of spoofing email and they get lost silently
+		$senderAddress = $contactSender;
+/*
 		if ( !$fromAddress ) {
 			// No email address entered, so use $contactSender instead
 			$senderAddress = $contactSender;
@@ -308,7 +325,7 @@ class SpecialContact extends UnlistedSpecialPage {
 				// Define reply-to address
 				$replyTo = $senderAddress;
 			}
-		}
+		}*/
 
 		$includeIP = isset( $config['IncludeIP'] ) && $config['IncludeIP']
 			&& ( $user->isAnon() || $formData['IncludeIP'] );
@@ -410,6 +427,15 @@ class SpecialContact extends UnlistedSpecialPage {
 
 			$text .= "{$name}: $value\n";
 		}
+
+		// #custom4training
+		$text .= 'Phone number: ' . $formData['FromPhone'] . "\n";
+		$text .= 'Email address: ' . $formData['FromAddress'] . "\n";
+		$text .= 'Place of living: ' . $formData['FromPlace'] . "\n";
+		$cctext = $text;
+		global $wgRequest;
+		$text .= 'IP address of the reporter: ' . $wgRequest->getIP() . "\n";
+		$text .= 'User agent: ' . $_SERVER['HTTP_USER_AGENT'] . "\n";
 
 		// Stolen from Special:EmailUser
 		$error = '';
