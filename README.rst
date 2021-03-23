@@ -8,3 +8,4 @@ Some custom changes on the ContactPage extension for 4training.net:
 - custom email body
 - avoiding PHP warnings
 
+TODO: fix some of this directly in the mediawiki ContactPage repository?
